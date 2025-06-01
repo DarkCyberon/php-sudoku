@@ -1,0 +1,12 @@
+{
+    "name": "alwk/php_sudoku",
+    "description": "sudoku_solver",
+    "autoload": {
+        "psr-4": {
+            "Alwk\\PhpSudoku\\": "app/"
+        }
+    },
+    "require": {
+      "ext-pdo": "*"
+    }
+}

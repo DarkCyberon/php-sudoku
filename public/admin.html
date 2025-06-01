@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Админка</title>
+    <style>
+        /* стили по желанию */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Кнопка выхода */
+        #logoutButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background-color: #366cf4; /* красный цвет */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        /* остальные стили таблиц */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Кнопка выхода -->
+<button id="logoutButton">Выйти</button>
+
+<h1>Панель администратора</h1>
+
+<h2>Все пользователи</h2>
+<table id="usersTable">
+    <thead>
+    <tr><th>ID</th><th>Имя</th><th>Роль</th></tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<h2>Активность за последний месяц</h2>
+<table id="activityTable">
+    <thead>
+    <tr><th>ID пользователя</th><th>Количество записей</th></tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    // Обработка кнопки выхода
+    document.getElementById('logoutButton').addEventListener('click', () => {
+        localStorage.removeItem('token'); // удаляем токен
+        window.location.href = 'login.html'; // перенаправляем на страницу входа
+    });
+
+    // Получение токена из localStorage
+    const token = localStorage.getItem('token');
+
+    if (!token || !token.startsWith('admin-')) {
+        alert('Доступ запрещен');
+        window.location.href = '/login.html';
+    }
+
+    // Функция для получения данных
+    async function fetchData(endpoint) {
+        const response = await fetch(endpoint, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        return response.json();
+    }
+
+    // Загрузка данных при загрузке страницы
+    window.onload = async () => {
+        try {
+            const usersData = await fetchData('/users'); // API пользователей
+            const activityData = await fetchData('/activity'); // API для активности
+
+            // Заполняем таблицу пользователей
+            const usersTbody = document.querySelector('#usersTable tbody');
+            usersData.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${user.id}</td><td>${user.username}</td><td>${user.role}</td>`;
+                usersTbody.appendChild(row);
+            });
+
+            // Заполняем таблицу активности
+            const activityTbody = document.querySelector('#activityTable tbody');
+            activityData.forEach(act => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${act.user_id}</td><td>${act.activity_count}</td>`;
+                activityTbody.appendChild(row);
+            });
+
+        } catch (e) {
+            console.error(e);
+            alert('Ошибка при загрузке данных');
+        }
+    };
+</script>
+
+</body>
+</html>
